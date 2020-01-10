@@ -58,6 +58,9 @@ final class LinuxEvent {
 
 	private final ByteBuffer event_buffer;
 
+	private boolean finalEventFiltered = false;
+	public static boolean enableIME = true;
+
 	LinuxEvent() {
 		this.event_buffer = createEventBuffer();
 	}
@@ -79,12 +82,17 @@ final class LinuxEvent {
 	private static native void nSendEvent(ByteBuffer event_buffer, long display, long window, boolean propagate, long event_mask);
 
 	public boolean filterEvent(long window) {
-		return nFilterEvent(event_buffer, window);
+		return this.finalEventFiltered;
 	}
 	private static native boolean nFilterEvent(ByteBuffer event_buffer, long window);
 
+	public boolean filterEventX(long window) {
+		return enableIME ? nFilterEvent(this.event_buffer, window) : false;
+	}
+
 	public void nextEvent(long display) {
 		nNextEvent(display, event_buffer);
+		this.finalEventFiltered = filterEventX(0L);
 	}
 	private static native void nNextEvent(long display, ByteBuffer event_buffer);
 
